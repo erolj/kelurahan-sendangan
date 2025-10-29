@@ -1,0 +1,43 @@
+import type React from "react"
+import type { Metadata } from "next"
+import { Geist, Geist_Mono } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
+import { Header } from "@/components/header"
+import { Sidebar } from "@/components/sidebar"
+import { SidebarProvider } from "@/components/sidebar-provider"
+import { MainContentWrapper } from "@/components/main-content-wrapper"
+import { Footer } from "@/components/footer"
+import { FloatingWhatsApp } from "@/components/floating-whatsapp"
+import "./globals.css"
+
+const _geist = Geist({ subsets: ["latin"] })
+const _geistMono = Geist_Mono({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "Kelurahan Sendangan",
+  description: "Website resmi Kelurahan Sendangan - Akses informasi publik, berita, dan potensi kelurahan",
+  generator: "v0.app",
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="id">
+      <body className={`font-sans antialiased flex flex-col min-h-screen`}>
+        <SidebarProvider>
+          <Sidebar />
+          <MainContentWrapper>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </MainContentWrapper>
+        </SidebarProvider>
+        <FloatingWhatsApp />
+        <Analytics />
+      </body>
+    </html>
+  )
+}
