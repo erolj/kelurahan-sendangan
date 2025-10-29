@@ -13,3 +13,58 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum PostType {
+  BERITA
+  PENGUMUMAN
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  type      PostType
+  title     String
+  body      String?  @db.Text // @db.Text untuk teks yang lebih panjang
+  date      DateTime? // Tanggal opsional
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GalleryItem {
+  id        Int      @id @default(autoincrement())
+  url       String   // URL gambar
+  caption   String?
+  createdAt DateTime @default(now())
+}
+
+model Potential {
+  id        Int      @id @default(autoincrement())
+  name      String
+  desc      String?
+  emoji     String?
+  createdAt DateTime @default(now())
+}
+
+model ProfileInfo {
+  key       String   @id // Contoh: "visi", "misi", "sejarahRingkas", "sejarahLengkap", "profilUmum"
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model StructureMember {
+  id         String    @id // ID unik (e.g., "lurah", "sekkel", "kasi-pem", "kl1", "kl1-pembantu1")
+  jabatan    String    // e.g., "Lurah", "Sekretaris Kelurahan", "Kepala Seksi Pemerintahan", "Kepala Lingkungan 1", "Pembantu Kaling 1"
+  nama       String?
+  nip        String?   // Tambahkan NIP (opsional)
+  lingkungan Int?     // Nomor lingkungan (untuk Kaling & Pembantu Kaling)
+
+  // Untuk Hierarki
+  parentId   String?   // ID dari atasan langsung (null untuk Lurah)
+  parent     StructureMember? @relation("Hierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children   StructureMember[] @relation("Hierarchy") // Bawahan langsung
+
+  urutan     Int?      // Untuk sorting (misal urutan Kasi, Kaling, Pembantu)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([parentId]) // Index untuk mempercepat query hierarki
+}
