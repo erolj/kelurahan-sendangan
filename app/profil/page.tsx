@@ -1,13 +1,22 @@
 "use client"
 
+import Image from "next/image"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function ProfilPage() {
   return (
     <div className="w-full">
-      {/* Page Header */}
-      <section className="bg-slate-900 text-white py-12 px-4">
-        <div className="mx-auto max-w-7xl">
+      <section className="relative bg-slate-900 text-white py-12 px-4">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2069"
+            alt="Profil Kelurahan"
+            fill
+            className="object-cover opacity-10"
+            sizes="100vw"
+          />
+        </div>
+        <div className="mx-auto max-w-7xl relative z-10">
           <h1 className="text-4xl font-bold">Profil Kelurahan Sendangan</h1>
           <p className="text-slate-300 mt-2">Informasi lengkap tentang kelurahan kami</p>
         </div>
