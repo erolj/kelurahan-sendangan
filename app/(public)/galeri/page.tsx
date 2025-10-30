@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ImageIcon } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
@@ -121,6 +121,9 @@ export default function GaleriPage() {
       {/* Lightbox Dialog */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-4xl">
+          <DialogTitle className="sr-only">
+            {selectedImage?.caption || "Galeri Foto"}
+          </DialogTitle>
           {selectedImage && (
             <div className="space-y-4">
               <div className="relative w-full h-[70vh]">
