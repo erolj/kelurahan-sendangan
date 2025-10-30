@@ -87,6 +87,12 @@ model StructureMember {
   @@index([parentId]) // Index untuk mempercepat query hierarki
 }
 
+model Setting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
