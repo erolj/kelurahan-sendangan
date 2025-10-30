@@ -18,6 +18,11 @@ enum PostType {
   PENGUMUMAN
 }
 
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
 enum Jabatan {
   LURAH
   SEKRETARIS_KELURAHAN
@@ -29,13 +34,15 @@ enum Jabatan {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  type      PostType
-  title     String
-  body      String?  @db.Text 
-  date      DateTime? 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int        @id @default(autoincrement())
+  type          PostType
+  status        PostStatus @default(DRAFT)
+  title         String
+  featuredImage String?
+  body          String?    @db.Text 
+  date          DateTime? 
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model GalleryItem {
@@ -50,6 +57,7 @@ model Potential {
   name      String
   desc      String?
   emoji     String?
+  imageUrl  String?
   createdAt DateTime @default(now())
 }
 
