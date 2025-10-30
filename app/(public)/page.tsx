@@ -5,6 +5,7 @@ import { StatCard } from "@/components/stat-card"
 import { AnnouncementCard } from "@/components/announcement-card"
 import { FeatureCard } from "@/components/feature-card"
 import { EmptyState } from "@/components/empty-state"
+import { HeroSection } from "@/components/hero-section"
 import { Newspaper, Sparkles, ImageIcon } from "lucide-react"
 
 interface Post {
@@ -155,31 +156,7 @@ export default async function Home() {
 
   return (
     <div className="w-full">
-      <section className="relative bg-linear-to-br from-slate-900 to-slate-800 text-white h-screen px-4 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=2070"
-            alt="Kelurahan Sendangan"
-            fill
-            priority
-            className="object-cover opacity-20"
-            sizes="100vw"
-          />
-        </div>
-        <div className="mx-auto max-w-7xl text-center relative z-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Selamat Datang di Website Kelurahan Sendangan
-          </h1>
-          <p className="text-lg text-slate-300 mb-8 text-balance">
-            Akses informasi publik, berita, dan potensi kelurahan dalam satu tempat.
-          </p>
-          <Link href="/peta">
-            <Button variant="outline" size="lg" className="text-slate-900 bg-white hover:bg-slate-100">
-              Lihat Peta
-            </Button>
-          </Link>
-        </div>
-      </section>
+      <HeroSection />
 
       {/* Statistics Section */}
       <section className="py-16 px-4 bg-white">

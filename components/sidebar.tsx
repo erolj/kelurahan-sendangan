@@ -48,15 +48,18 @@ export function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/10"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/10 hover:translate-x-1"
                   }`}
                   title={!isExpanded ? item.label : ""}
                 >
-                  <Icon size={20} className="shrink-0" />
+                  <Icon size={20} className={`shrink-0 transition-transform ${!isActive && 'group-hover:scale-110'}`} />
                   {isExpanded && <span className="text-sm font-medium">{item.label}</span>}
+                  {isActive && isExpanded && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary-foreground animate-pulse-soft" />
+                  )}
                 </Link>
               )
             })}
@@ -66,10 +69,10 @@ export function Sidebar() {
         <div className="border-t border-sidebar-border p-2">
           <Link
             href="/admin/login"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent/10 mb-2"
+            className="group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent/10 hover:translate-x-1 mb-2"
             title={!isExpanded ? "Admin Login" : ""}
           >
-            <ShieldCheck size={20} className="shrink-0" />
+            <ShieldCheck size={20} className="shrink-0 group-hover:scale-110 transition-transform" />
             {isExpanded && <span className="text-sm font-medium">Admin Login</span>}
           </Link>
         </div>
