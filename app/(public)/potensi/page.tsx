@@ -1,26 +1,42 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Image from "next/image"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Sparkles } from "lucide-react"
+
+interface Potential {
+  id: number
+  name: string
+  desc: string | null
+  emoji: string | null
+  imageUrl: string | null
+  createdAt: string
+}
 
 export default function PotensiPage() {
-  const potentials = [
-    {
-      emoji: "🥜",
-      name: "Kacang Kawangkoan",
-      desc: "Produk unggulan sebagai oleh-oleh khas. Kacang Kawangkoan terkenal dengan kualitas terbaik dan rasa yang autentik, menjadi pilihan utama wisatawan.",
-      image: "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=400&h=300&fit=crop",
-    },
-    {
-      emoji: "🥟",
-      name: "Biapong",
-      desc: "Kuliner tradisional populer. Biapong adalah makanan khas yang telah menjadi bagian dari warisan budaya lokal dan terus diminati oleh masyarakat.",
-      image: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=300&fit=crop",
-    },
-    {
-      emoji: "🏛️",
-      name: "Goa Jepang",
-      desc: "Wisata sejarah & edukasi. Goa Jepang menyimpan nilai sejarah penting dan menawarkan pengalaman edukatif bagi pengunjung yang ingin mengenal lebih dalam.",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-    },
-  ]
+  const [potentials, setPotentials] = useState<Potential[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPotentials = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/public/potentials")
+        if (!res.ok) throw new Error("Failed to fetch potentials")
+
+        const data = await res.json()
+        setPotentials(data)
+      } catch (error) {
+        console.error("Error fetching potentials:", error)
+        setPotentials([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPotentials()
+  }, [])
 
   return (
     <div className="w-full">
@@ -42,31 +58,63 @@ export default function PotensiPage() {
 
       <section className="py-16 px-4 bg-white">
         <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {potentials.map((potential) => (
-              <div
-                key={potential.name}
-                className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
-              >
-                <div className="relative h-56 w-full">
-                  <Image
-                    src={potential.image}
-                    alt={potential.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent flex items-end justify-center pb-4">
-                    <div className="text-6xl">{potential.emoji}</div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="border rounded-lg overflow-hidden">
+                  <Skeleton className="h-56 w-full" />
+                  <div className="p-6 space-y-3">
+                    <Skeleton className="h-6 w-3/4 mx-auto" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6 mx-auto" />
                   </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-slate-900 text-xl mb-3 text-center">{potential.name}</h3>
-                  <p className="text-slate-600 text-center leading-relaxed">{potential.desc}</p>
+              ))}
+            </div>
+          ) : potentials.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-lg">Belum ada data potensi unggulan</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {potentials.map((potential) => (
+                <div
+                  key={potential.id}
+                  className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative h-56 w-full bg-slate-100">
+                    {potential.imageUrl ? (
+                      <Image
+                        src={potential.imageUrl}
+                        alt={potential.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-6xl">{potential.emoji || "📍"}</span>
+                      </div>
+                    )}
+                    {potential.emoji && potential.imageUrl && (
+                      <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent flex items-end justify-center pb-4">
+                        <div className="text-6xl">{potential.emoji}</div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="font-bold text-slate-900 text-xl mb-3 text-center">
+                      {potential.name}
+                    </h3>
+                    <p className="text-slate-600 text-center leading-relaxed">
+                      {potential.desc || ""}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

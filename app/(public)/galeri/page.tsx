@@ -1,32 +1,50 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Image from "next/image"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ImageIcon } from "lucide-react"
+
+interface GalleryItem {
+  id: number
+  url: string
+  caption: string | null
+  createdAt: string
+}
 
 export default function GaleriPage() {
-  const images = [
-    {
-      src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&h=500&fit=crop",
-      caption: "Kegiatan warga",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=500&fit=crop",
-      caption: "UMKM lokal",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-      caption: "Pemandangan Sendangan",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=500&h=500&fit=crop",
-      caption: "Kegiatan komunitas",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=500&fit=crop",
-      caption: "Produk lokal",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1517457373614-b7152f800fd1?w=500&h=500&fit=crop",
-      caption: "Acara kelurahan",
-    },
-  ]
+  const [images, setImages] = useState<GalleryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null)
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/public/gallery")
+        if (!res.ok) throw new Error("Failed to fetch gallery")
+
+        const data = await res.json()
+        setImages(data)
+      } catch (error) {
+        console.error("Error fetching gallery:", error)
+        setImages([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchGallery()
+  }, [])
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
 
   return (
     <div className="w-full">
@@ -48,26 +66,80 @@ export default function GaleriPage() {
 
       <section className="py-16 px-4 bg-white">
         <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {images.map((image, index) => (
-              <div key={index} className="group overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <div className="relative w-full h-64 bg-slate-200">
-                  <Image
-                    src={image.src}
-                    alt={image.caption}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="rounded-lg overflow-hidden">
+                  <Skeleton className="h-64 w-full" />
+                  <div className="bg-slate-50 p-4">
+                    <Skeleton className="h-4 w-3/4 mx-auto" />
+                  </div>
                 </div>
-                <div className="bg-slate-50 p-4">
-                  <p className="text-slate-700 font-medium text-center">{image.caption}</p>
+              ))}
+            </div>
+          ) : images.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-lg">Belum ada foto di galeri</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {images.map((image) => (
+                <div
+                  key={image.id}
+                  className="group overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <div className="relative w-full h-64 bg-slate-200">
+                    <Image
+                      src={image.url}
+                      alt={image.caption || "Gallery image"}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  </div>
+                  <div className="bg-slate-50 p-4">
+                    <p className="text-slate-700 font-medium text-center line-clamp-1">
+                      {image.caption || "Foto Kegiatan"}
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      {formatDate(image.createdAt)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Lightbox Dialog */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl">
+          {selectedImage && (
+            <div className="space-y-4">
+              <div className="relative w-full h-[70vh]">
+                <Image
+                  src={selectedImage.url}
+                  alt={selectedImage.caption || "Gallery image"}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 1024px) 100vw, 1024px"
+                />
+              </div>
+              {selectedImage.caption && (
+                <div className="text-center">
+                  <p className="text-lg font-medium">{selectedImage.caption}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {formatDate(selectedImage.createdAt)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
