@@ -31,6 +31,11 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
+  const stripHtml = (html: string | null) => {
+    if (!html) return ''
+    return html.replace(/<[^>]*>/g, '')
+  }
+
   useEffect(() => {
     fetchPosts()
   }, [activeTab, statusFilter, searchQuery])
@@ -175,7 +180,7 @@ export default function PostsPage() {
                       </Badge>
                     </div>
                     {post.body && (
-                      <p className="text-sm text-slate-600 line-clamp-2">{post.body}</p>
+                      <p className="text-sm text-slate-600 line-clamp-2">{stripHtml(post.body)}</p>
                     )}
                     <p className="text-xs text-slate-500 mt-1">
                       {new Date(post.createdAt).toLocaleDateString('id-ID')}

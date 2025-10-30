@@ -119,8 +119,10 @@ export default async function Home() {
 
   const truncateText = (text: string | null, maxLength: number) => {
     if (!text) return ''
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + '...'
+    // Remove HTML tags
+    const plainText = text.replace(/<[^>]*>/g, '')
+    if (plainText.length <= maxLength) return plainText
+    return plainText.substring(0, maxLength) + '...'
   }
 
   return (
