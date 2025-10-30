@@ -19,12 +19,22 @@ enum PostType {
   PENGUMUMAN
 }
 
+enum Jabatan {
+  LURAH
+  SEKRETARIS_KELURAHAN
+  KEPALA_SEKSI_PEMERINTAHAN
+  KEPALA_SEKSI_PEMBANGUNAN
+  KEPALA_SEKSI_KESEJAHTERAAN_RAKYAT
+  KEPALA_LINGKUNGAN_1
+  PEMBANTU_KALING_1
+}
+
 model Post {
   id        Int      @id @default(autoincrement())
   type      PostType
   title     String
-  body      String?  @db.Text // @db.Text untuk teks yang lebih panjang
-  date      DateTime? // Tanggal opsional
+  body      String?  @db.Text 
+  date      DateTime? 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -51,8 +61,8 @@ model ProfileInfo {
 }
 
 model StructureMember {
-  id         String    @id // ID unik (e.g., "lurah", "sekkel", "kasi-pem", "kl1", "kl1-pembantu1")
-  jabatan    String    // e.g., "Lurah", "Sekretaris Kelurahan", "Kepala Seksi Pemerintahan", "Kepala Lingkungan 1", "Pembantu Kaling 1"
+  id         String    @id @default(uuid())
+  jabatan    Jabatan
   nama       String?
   nip        String?   // Tambahkan NIP (opsional)
   lingkungan Int?     // Nomor lingkungan (untuk Kaling & Pembantu Kaling)
@@ -67,4 +77,12 @@ model StructureMember {
   updatedAt  DateTime  @updatedAt
 
   @@index([parentId]) // Index untuk mempercepat query hierarki
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
