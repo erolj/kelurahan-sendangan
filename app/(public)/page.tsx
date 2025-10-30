@@ -4,50 +4,123 @@ import Image from "next/image"
 import { StatCard } from "@/components/stat-card"
 import { AnnouncementCard } from "@/components/announcement-card"
 import { FeatureCard } from "@/components/feature-card"
+import { Newspaper, Sparkles, ImageIcon } from "lucide-react"
 
-export default function Home() {
+interface Post {
+  id: number
+  type: string
+  title: string
+  body: string | null
+  date: string | null
+  createdAt: string
+}
+
+interface Potential {
+  id: number
+  name: string
+  desc: string | null
+  emoji: string | null
+  imageUrl: string | null
+}
+
+interface GalleryItem {
+  id: number
+  url: string
+  caption: string | null
+}
+
+interface Settings {
+  totalJiwa?: string
+  jumlahKK?: string
+  lakiLaki?: string
+  perempuan?: string
+}
+
+async function getSettings(): Promise<Settings> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/public/settings`, {
+      next: { revalidate: 3600 }
+    })
+    if (!res.ok) return {}
+    return res.json()
+  } catch (error) {
+    console.error('Failed to fetch settings:', error)
+    return {}
+  }
+}
+
+async function getAnnouncements(): Promise<Post[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/public/posts?category=PENGUMUMAN&limit=3`,
+      { next: { revalidate: 300 } }
+    )
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.posts || []
+  } catch (error) {
+    console.error('Failed to fetch announcements:', error)
+    return []
+  }
+}
+
+async function getPotentials(): Promise<Potential[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/public/potentials?limit=3`,
+      { next: { revalidate: 3600 } }
+    )
+    if (!res.ok) return []
+    return res.json()
+  } catch (error) {
+    console.error('Failed to fetch potentials:', error)
+    return []
+  }
+}
+
+async function getGallery(): Promise<GalleryItem[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/public/gallery?limit=4`,
+      { next: { revalidate: 3600 } }
+    )
+    if (!res.ok) return []
+    return res.json()
+  } catch (error) {
+    console.error('Failed to fetch gallery:', error)
+    return []
+  }
+}
+
+export default async function Home() {
+  const [settings, announcements, potentials, gallery] = await Promise.all([
+    getSettings(),
+    getAnnouncements(),
+    getPotentials(),
+    getGallery()
+  ])
+
   const stats = [
-    { label: "Total Jiwa", value: "6.120" },
-    { label: "Jumlah KK", value: "1.845" },
-    { label: "Laki-laki", value: "3.080" },
-    { label: "Perempuan", value: "3.040" },
+    { label: "Total Jiwa", value: settings.totalJiwa || "-" },
+    { label: "Jumlah KK", value: settings.jumlahKK || "-" },
+    { label: "Laki-laki", value: settings.lakiLaki || "-" },
+    { label: "Perempuan", value: settings.perempuan || "-" },
   ]
 
-  const announcements = [
-    {
-      title: "Kerja Bakti Lingkungan 3",
-      date: "2025-11-02",
-      body: "Pukul 07.00 WITA – titik kumpul Posko KKT.",
-    },
-    {
-      title: "Posyandu Balita & Lansia",
-      date: "2025-11-05",
-      body: "Balai Kelurahan.",
-    },
-    {
-      title: "Pelayanan Surat Massal",
-      date: "2025-11-03",
-      body: "Pelayanan administrasi di kantor kelurahan.",
-    },
-  ]
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return ''
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
 
-  const potentials = [
-    {
-      emoji: "🥜",
-      name: "Kacang Kawangkoan",
-      desc: "Produk unggulan sebagai oleh-oleh khas.",
-    },
-    {
-      emoji: "🥟",
-      name: "Biapong",
-      desc: "Kuliner tradisional populer.",
-    },
-    {
-      emoji: "🏛️",
-      name: "Goa Jepang",
-      desc: "Wisata sejarah & edukasi.",
-    },
-  ]
+  const truncateText = (text: string | null, maxLength: number) => {
+    if (!text) return ''
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength) + '...'
+  }
 
   return (
     <div className="w-full">
@@ -89,69 +162,94 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-slate-50">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Pengumuman Terkini</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {announcements.map((announcement) => (
-              <AnnouncementCard
-                key={announcement.title}
-                title={announcement.title}
-                date={announcement.date}
-                body={announcement.body}
-              />
-            ))}
+            {/* Pengumuman Section */}
+      <section className="py-16 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold">Pengumuman</h2>
+            <Button variant="outline" asChild>
+              <Link href="/berita?tab=pengumuman">Lihat Semua</Link>
+            </Button>
           </div>
-          <div className="text-center">
-            <Link href="/berita">
-              <Button variant="default">Lihat Semua Berita</Button>
-            </Link>
-          </div>
+          {announcements.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Newspaper className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Belum ada pengumuman</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {announcements.map((announcement) => (
+                <AnnouncementCard
+                  key={announcement.id}
+                  title={announcement.title}
+                  date={formatDate(announcement.date || announcement.createdAt)}
+                  body={truncateText(announcement.body, 100)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-white">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Potensi Unggulan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {potentials.map((potential) => (
-              <FeatureCard key={potential.name} emoji={potential.emoji} name={potential.name} desc={potential.desc} />
-            ))}
+            {/* Potensi Section */}
+      <section className="py-16 px-4 bg-background">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold">Potensi Kelurahan</h2>
+            <Button variant="outline" asChild>
+              <Link href="/potensi">Lihat Semua</Link>
+            </Button>
           </div>
-          <div className="text-center">
-            <Link href="/potensi">
-              <Button variant="default">Lihat Semua Potensi</Button>
-            </Link>
-          </div>
+          {potentials.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Belum ada data potensi</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {potentials.map((potential) => (
+                <FeatureCard
+                  key={potential.id}
+                  emoji={potential.emoji || '📍'}
+                  name={potential.name}
+                  desc={potential.desc || ''}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       <section className="py-16 px-4 bg-slate-50">
         <div className="mx-auto max-w-7xl">
           <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Galeri Kegiatan</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[
-              "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop",
-              "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
-              "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-              "https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=400&h=300&fit=crop",
-            ].map((src, index) => (
-              <div key={index} className="relative h-48 rounded-lg overflow-hidden group">
-                <Image
-                  src={src}
-                  alt={`Galeri ${index + 1}`}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
+          {gallery.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Belum ada foto di galeri</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                {gallery.map((item) => (
+                  <div key={item.id} className="relative h-48 rounded-lg overflow-hidden group">
+                    <Image
+                      src={item.url}
+                      alt={item.caption || 'Gallery image'}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="text-center">
-            <Link href="/galeri">
-              <Button variant="default">Lihat Semua Galeri</Button>
-            </Link>
-          </div>
+              <div className="text-center">
+                <Link href="/galeri">
+                  <Button variant="default">Lihat Semua Galeri</Button>
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>
