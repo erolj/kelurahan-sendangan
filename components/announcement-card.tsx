@@ -36,7 +36,7 @@ export function AnnouncementCard({ title, date, body, delay = 0 }: AnnouncementC
       {/* Content */}
       <div className="relative z-10 pt-2">
         {/* Category badge */}
-        <Badge variant="outline" className="mb-3 border-primary/30 text-primary">
+        <Badge variant="outline" className="mb-3 border-orange-400 text-orange-700 bg-orange-50">
           <Clock className="h-3 w-3 mr-1" />
           Pengumuman
         </Badge>

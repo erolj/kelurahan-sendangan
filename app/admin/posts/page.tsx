@@ -172,10 +172,16 @@ export default function PostsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-slate-900">{post.title}</h3>
-                      <Badge variant={post.type === "BERITA" ? "default" : "secondary"}>
+                      <Badge 
+                        variant="outline"
+                        className={post.type === "BERITA" ? "border-blue-500 text-blue-700 bg-blue-50" : "border-orange-500 text-orange-700 bg-orange-50"}
+                      >
                         {post.type}
                       </Badge>
-                      <Badge variant={post.status === "PUBLISHED" ? "default" : "outline"}>
+                      <Badge 
+                        variant="outline"
+                        className={post.status === "PUBLISHED" ? "border-primary text-primary bg-primary/10" : "border-slate-400 text-slate-700 bg-slate-50"}
+                      >
                         {post.status}
                       </Badge>
                     </div>
