@@ -2,15 +2,10 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { Sidebar } from "@/components/sidebar"
-import { SidebarProvider } from "@/components/sidebar-provider"
-import { MainContentWrapper } from "@/components/main-content-wrapper"
-import { Footer } from "@/components/footer"
-import { FloatingWhatsApp } from "@/components/floating-whatsapp"
 import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geist = Geist({ subsets: ["latin"] })
+const geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Kelurahan Sendangan",
@@ -25,15 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`font-sans antialiased flex flex-col min-h-screen`}>
-        <SidebarProvider>
-          <Sidebar />
-          <MainContentWrapper>
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </MainContentWrapper>
-        </SidebarProvider>
-        <FloatingWhatsApp />
+      <body className={`${geist.className} antialiased`}>
+        {children}
         <Analytics />
       </body>
     </html>
