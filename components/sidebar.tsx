@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronLeft, ChevronRight, Home, Users, Layers, Zap, Newspaper, Images, Map } from "lucide-react"
+import { ChevronLeft, ChevronRight, Home, Users, Layers, Zap, Newspaper, Images, Map, ShieldCheck } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSidebar } from "./sidebar-provider"
 
@@ -63,7 +63,17 @@ export function Sidebar() {
           </div>
         </nav>
 
-        {/* Toggle Button */}
+        <div className="border-t border-sidebar-border p-2">
+          <Link
+            href="/admin/login"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent/10 mb-2"
+            title={!isExpanded ? "Admin Login" : ""}
+          >
+            <ShieldCheck size={20} className="shrink-0" />
+            {isExpanded && <span className="text-sm font-medium">Admin Login</span>}
+          </Link>
+        </div>
+
         <div className="border-t border-sidebar-border p-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
