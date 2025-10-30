@@ -4,6 +4,7 @@ import Image from "next/image"
 import { StatCard } from "@/components/stat-card"
 import { AnnouncementCard } from "@/components/announcement-card"
 import { FeatureCard } from "@/components/feature-card"
+import { EmptyState } from "@/components/empty-state"
 import { Newspaper, Sparkles, ImageIcon } from "lucide-react"
 
 interface Post {
@@ -172,10 +173,12 @@ export default async function Home() {
             </Button>
           </div>
           {announcements.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Newspaper className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Belum ada pengumuman</p>
-            </div>
+            <EmptyState
+              icon={Newspaper}
+              title="Belum Ada Pengumuman"
+              description="Belum ada pengumuman terbaru saat ini. Pantau terus halaman ini untuk mendapatkan informasi penting dari Kelurahan Sendangan."
+              showAnimation={true}
+            />
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
               {announcements.map((announcement) => (
@@ -201,10 +204,12 @@ export default async function Home() {
             </Button>
           </div>
           {potentials.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Belum ada data potensi</p>
-            </div>
+            <EmptyState
+              icon={Sparkles}
+              title="Belum Ada Data Potensi"
+              description="Informasi tentang potensi unggulan kelurahan akan segera hadir. Nantikan update terbaru dari kami."
+              showAnimation={true}
+            />
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
               {potentials.map((potential) => (
@@ -224,10 +229,12 @@ export default async function Home() {
         <div className="mx-auto max-w-7xl">
           <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Galeri Kegiatan</h2>
           {gallery.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Belum ada foto di galeri</p>
-            </div>
+            <EmptyState
+              icon={ImageIcon}
+              title="Galeri Masih Kosong"
+              description="Dokumentasi kegiatan dan foto-foto menarik akan segera ditampilkan di sini."
+              showAnimation={true}
+            />
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

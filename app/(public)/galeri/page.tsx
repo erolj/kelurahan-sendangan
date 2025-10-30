@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ImageIcon } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 
 interface GalleryItem {
   id: number
@@ -78,10 +79,13 @@ export default function GaleriPage() {
               ))}
             </div>
           ) : images.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-lg">Belum ada foto di galeri</p>
-            </div>
+            <EmptyState
+              icon={ImageIcon}
+              title="Galeri Masih Kosong"
+              description="Belum ada foto kegiatan yang tersedia saat ini. Pantau terus halaman ini untuk melihat dokumentasi kegiatan dan momen menarik dari Kelurahan Sendangan."
+              actionLabel="Lihat Berita Terkini"
+              actionHref="/berita"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {images.map((image) => (

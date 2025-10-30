@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sparkles } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 
 interface Potential {
   id: number
@@ -72,10 +73,13 @@ export default function PotensiPage() {
               ))}
             </div>
           ) : potentials.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-lg">Belum ada data potensi unggulan</p>
-            </div>
+            <EmptyState
+              icon={Sparkles}
+              title="Belum Ada Potensi Unggulan"
+              description="Saat ini belum ada data potensi unggulan yang tersedia. Silakan kembali lagi nanti untuk melihat berbagai potensi menarik dari Kelurahan Sendangan."
+              actionLabel="Kembali ke Beranda"
+              actionHref="/"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {potentials.map((potential) => (
