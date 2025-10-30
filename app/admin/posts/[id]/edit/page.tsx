@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,26 +13,58 @@ import { useToast } from "@/hooks/use-toast"
 import { ImageUpload } from "@/components/admin/image-upload"
 import { NovelEditor } from "@/components/admin/novel-editor"
 
-export default function CreatePostPage() {
+export default function EditPostPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [editorContent, setEditorContent] = useState("")
   const [formData, setFormData] = useState({
     title: "",
     type: "BERITA",
     status: "DRAFT",
-    date: new Date().toISOString().split("T")[0],
+    date: "",
     featuredImage: "",
   })
+
+  useEffect(() => {
+    fetchPost()
+  }, [])
+
+  const fetchPost = async () => {
+    try {
+      const res = await fetch(`/api/admin/posts/${params.id}`)
+      const data = await res.json()
+      
+      setFormData({
+        title: data.title,
+        type: data.type,
+        status: data.status,
+        date: data.date ? new Date(data.date).toISOString().split("T")[0] : "",
+        featuredImage: data.featuredImage || "",
+      })
+
+      if (data.body) {
+        setEditorContent(data.body)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal memuat post",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const res = await fetch('/api/admin/posts', {
-        method: 'POST',
+      const res = await fetch(`/api/admin/posts/${params.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
@@ -43,21 +75,25 @@ export default function CreatePostPage() {
       if (res.ok) {
         toast({
           title: "Berhasil",
-          description: "Post berhasil dibuat",
+          description: "Post berhasil diupdate",
         })
         router.push('/admin/posts')
       } else {
-        throw new Error('Failed to create post')
+        throw new Error('Failed to update post')
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Gagal membuat post",
+        description: "Gagal mengupdate post",
         variant: "destructive",
       })
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (loading) {
+    return <div className="py-12 text-center">Loading...</div>
   }
 
   return (
@@ -69,8 +105,8 @@ export default function CreatePostPage() {
           </Button>
         </Link>
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Buat Post Baru</h2>
-          <p className="text-slate-600 mt-1">Tambah berita atau pengumuman baru</p>
+          <h2 className="text-3xl font-bold text-slate-900">Edit Post</h2>
+          <p className="text-slate-600 mt-1">Update berita atau pengumuman</p>
         </div>
       </div>
 
@@ -132,7 +168,6 @@ export default function CreatePostPage() {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
               />
             </div>
 
@@ -159,7 +194,7 @@ export default function CreatePostPage() {
             <div className="flex items-center gap-4 pt-4">
               <Button type="submit" disabled={isLoading}>
                 <Save className="mr-2 h-4 w-4" />
-                {isLoading ? "Menyimpan..." : "Simpan Post"}
+                {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
               </Button>
               <Link href="/admin/posts">
                 <Button type="button" variant="outline">
