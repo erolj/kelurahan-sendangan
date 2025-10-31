@@ -24,16 +24,6 @@ enum PostStatus {
   PUBLISHED
 }
 
-enum Jabatan {
-  LURAH
-  SEKRETARIS_KELURAHAN
-  KEPALA_SEKSI_PEMERINTAHAN
-  KEPALA_SEKSI_PEMBANGUNAN
-  KEPALA_SEKSI_KESEJAHTERAAN_RAKYAT
-  KEPALA_LINGKUNGAN_1
-  PEMBANTU_KALING_1
-}
-
 model Post {
   id            Int        @id @default(autoincrement())
   type          PostType
@@ -70,7 +60,7 @@ model ProfileInfo {
 
 model StructureMember {
   id         String    @id @default(uuid())
-  jabatan    Jabatan
+  jabatan    String
   nama       String?
   nip        String?   // Tambahkan NIP (opsional)
   lingkungan Int?     // Nomor lingkungan (untuk Kaling & Pembantu Kaling)
