@@ -94,7 +94,7 @@ export default function CreateStrukturPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-4">
         <Link href="/admin/struktur">
           <Button variant="outline" size="icon">

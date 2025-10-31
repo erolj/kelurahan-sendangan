@@ -97,7 +97,7 @@ export default function ProfilPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <div>
         <h2 className="text-3xl font-bold text-slate-900">Profil Management</h2>
         <p className="text-slate-600 mt-1">Edit informasi profil kelurahan</p>
