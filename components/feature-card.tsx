@@ -1,17 +1,19 @@
 "use client"
 
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
 
 interface FeatureCardProps {
-  emoji: string
+  emoji?: string | null
+  imageUrl?: string | null
   name: string
   desc: string
   delay?: number
 }
 
-export function FeatureCard({ emoji, name, desc, delay = 0 }: FeatureCardProps) {
+export function FeatureCard({ emoji, imageUrl, name, desc, delay = 0 }: FeatureCardProps) {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 })
 
   return (
@@ -35,10 +37,26 @@ export function FeatureCard({ emoji, name, desc, delay = 0 }: FeatureCardProps) 
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Emoji with animation */}
-        <div className="text-6xl mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-          {emoji}
-        </div>
+        {imageUrl ? (
+          <div className="relative w-24 h-24 mx-auto mb-6 rounded-2xl overflow-hidden shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            <Image
+              src={imageUrl}
+              alt={name}
+              fill
+              className="object-cover"
+              sizes="96px"
+            />
+            {emoji && (
+              <div className="absolute bottom-1 right-1 text-2xl drop-shadow-lg">
+                {emoji}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-6xl mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            {emoji || '📍'}
+          </div>
+        )}
         
         <h3 className="font-bold text-slate-900 text-xl mb-3 group-hover:text-secondary transition-colors">
           {name}

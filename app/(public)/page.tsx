@@ -233,7 +233,8 @@ export default async function Home() {
               {potentials.map((potential, index) => (
                 <FeatureCard
                   key={potential.id}
-                  emoji={potential.emoji || '📍'}
+                  emoji={potential.emoji}
+                  imageUrl={potential.imageUrl}
                   name={potential.name}
                   desc={potential.desc || ''}
                   delay={index * 100}
