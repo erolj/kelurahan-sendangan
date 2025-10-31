@@ -15,8 +15,10 @@ export async function DELETE(
     }
 
     const { id: idParam } = await context.params
-    const id = parseInt(idParam)
-    
+    const id = Number(idParam)
+    if (!Number.isInteger(id)) {
+      return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+    }
     const item = await prisma.galleryItem.findUnique({
       where: { id }
     })
@@ -26,10 +28,22 @@ export async function DELETE(
     }
 
     try {
-      const filename = item.url.split('/').pop()
-      if (filename) {
-        const filePath = join(process.cwd(), 'public', 'uploads', filename)
-        await unlink(filePath)
+      // Only attempt to remove local upload files (those under /uploads/)
+      if (item.url && item.url.startsWith('/uploads/')) {
+        // Strip query params (e.g. /uploads/file.jpg?ver=1)
+        const localPath = item.url.split('?')[0]
+        const filename = localPath.split('/').pop()
+        if (filename) {
+          const filePath = join(process.cwd(), 'public', 'uploads', filename)
+          try {
+            await unlink(filePath)
+          } catch (fileError) {
+            // Ignore missing file (ENOENT), but log other errors
+            if ((fileError as any)?.code !== 'ENOENT') {
+              console.error('File deletion error:', fileError)
+            }
+          }
+        }
       }
     } catch (fileError) {
       console.error('File deletion error:', fileError)
