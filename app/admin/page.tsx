@@ -1,19 +1,57 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Image as ImageIcon, Sparkles, Users } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { 
+  FileText, 
+  Image as ImageIcon, 
+  Sparkles, 
+  Users, 
+  UserPlus, 
+  Trash2,
+  Mail,
+  Shield,
+  TrendingUp,
+  Eye
+} from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog"
+import Link from "next/link"
+
+interface User {
+  id: string
+  email: string
+  createdAt: string
+}
 
 export default function AdminDashboard() {
+  const { data: session } = useSession()
+  const { toast } = useToast()
   const [stats, setStats] = useState({
     posts: 0,
     gallery: 0,
     potentials: 0,
     users: 0,
   })
+  const [users, setUsers] = useState<User[]>([])
+  const [showAddUser, setShowAddUser] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  })
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     fetchStats()
+    fetchUsers()
   }, [])
 
   const fetchStats = async () => {
@@ -43,11 +81,118 @@ export default function AdminDashboard() {
     }
   }
 
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/admin/users')
+      const data = await res.json()
+      setUsers(data)
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
+    }
+  }
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Password tidak sama",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password minimal 6 karakter",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsCreating(true)
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      if (res.ok) {
+        toast({
+          title: "Berhasil",
+          description: "User baru berhasil ditambahkan",
+        })
+        setFormData({ email: "", password: "", confirmPassword: "" })
+        setShowAddUser(false)
+        fetchUsers()
+        fetchStats()
+      } else {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to create user')
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal membuat user",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const handleDeleteUser = async (userId: string) => {
+    setDeleting(true)
+
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        toast({
+          title: "Berhasil",
+          description: "User berhasil dihapus",
+        })
+        setDeleteDialogOpen(false)
+        setUserToDelete(null)
+        fetchUsers()
+        fetchStats()
+      } else {
+        throw new Error('Delete failed')
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal menghapus user",
+        variant: "destructive",
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const openDeleteDialog = (user: User) => {
+    setUserToDelete(user)
+    setDeleteDialogOpen(true)
+  }
+
   const statCards = [
     {
       title: "Total Posts",
       value: stats.posts.toString(),
       icon: FileText,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+      link: "/admin/posts",
+    },
       description: "Berita & Pengumuman",
       color: "text-blue-600",
       bgColor: "bg-blue-50",

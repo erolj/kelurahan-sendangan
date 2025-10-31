@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Edit, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog"
 
 interface Post {
   id: number
@@ -29,6 +30,9 @@ export default function PostsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const { toast } = useToast()
 
   const stripHtml = (html: string | null) => {
@@ -63,7 +67,7 @@ export default function PostsPage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Yakin ingin menghapus post ini?')) return
+    setDeleting(true)
 
     try {
       const res = await fetch(`/api/admin/posts/${id}`, {
@@ -75,7 +79,11 @@ export default function PostsPage() {
           title: "Berhasil",
           description: "Post berhasil dihapus",
         })
+        setDeleteDialogOpen(false)
+        setPostToDelete(null)
         fetchPosts()
+      } else {
+        throw new Error('Delete failed')
       }
     } catch (error) {
       toast({
@@ -83,7 +91,14 @@ export default function PostsPage() {
         description: "Gagal menghapus post",
         variant: "destructive",
       })
+    } finally {
+      setDeleting(false)
     }
+  }
+
+  const openDeleteDialog = (post: Post) => {
+    setPostToDelete(post)
+    setDeleteDialogOpen(true)
   }
 
   return (
@@ -201,7 +216,7 @@ export default function PostsPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => openDeleteDialog(post)}
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
@@ -212,6 +227,16 @@ export default function PostsPage() {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={() => postToDelete && handleDelete(postToDelete.id)}
+        title="Yakin ingin menghapus post ini?"
+        description="Tindakan ini tidak dapat dibatalkan. Post akan dihapus secara permanen dari database."
+        itemName={postToDelete?.title}
+        loading={deleting}
+      />
     </div>
   )
 }

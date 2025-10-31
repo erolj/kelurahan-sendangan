@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast"
 import { ImageUpload } from "@/components/admin/image-upload"
 import { NovelEditor } from "@/components/admin/novel-editor"
 
-export default function EditPostPage({ params }: { params: { id: string } }) {
+export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -33,7 +34,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
 
   const fetchPost = async () => {
     try {
-      const res = await fetch(`/api/admin/posts/${params.id}`)
+      const res = await fetch(`/api/admin/posts/${id}`)
       const data = await res.json()
       
       setFormData({
@@ -63,7 +64,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
     setIsLoading(true)
 
     try {
-      const res = await fetch(`/api/admin/posts/${params.id}`, {
+      const res = await fetch(`/api/admin/posts/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

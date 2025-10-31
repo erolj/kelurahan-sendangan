@@ -200,6 +200,7 @@ export default async function Home() {
               {announcements.map((announcement, index) => (
                 <AnnouncementCard
                   key={announcement.id}
+                  id={announcement.id}
                   title={announcement.title}
                   date={formatDate(announcement.date || announcement.createdAt)}
                   body={truncateText(announcement.body, 100)}
