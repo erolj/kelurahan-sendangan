@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Users, Home, Mail, Phone, MapPin, Save } from 'lucide-react'
+import { Users, Home, Mail, Phone, MapPin, Save, Image as ImageIcon, Upload, X } from 'lucide-react'
+import Image from 'next/image'
 
 interface Settings {
   totalJiwa?: string
@@ -18,6 +19,13 @@ interface Settings {
   telp?: string
   email?: string
   website?: string
+  heroImage?: string
+  beritaBanner?: string
+  galeriBanner?: string
+  potensiBanner?: string
+  profilBanner?: string
+  strukturBanner?: string
+  petaBanner?: string
 }
 
 export default function SettingsPage() {
@@ -25,6 +33,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [settings, setSettings] = useState<Settings>({})
   const [formData, setFormData] = useState<Settings>({})
+  const [uploadingBanner, setUploadingBanner] = useState<string | null>(null)
 
   useEffect(() => {
     fetchSettings()
@@ -72,6 +81,116 @@ export default function SettingsPage() {
     setFormData(prev => ({ ...prev, [key]: value }))
   }
 
+  const handleBannerUpload = async (key: string, file: File) => {
+    try {
+      setUploadingBanner(key)
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('key', key)
+
+      const res = await fetch('/api/admin/settings/banners', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!res.ok) throw new Error('Failed to upload banner')
+
+      const data = await res.json()
+      setSettings(prev => ({ ...prev, [key]: data.url }))
+      setFormData(prev => ({ ...prev, [key]: data.url }))
+      toast.success('Banner uploaded successfully')
+    } catch (error) {
+      console.error('Error uploading banner:', error)
+      toast.error('Failed to upload banner')
+    } finally {
+      setUploadingBanner(null)
+    }
+  }
+
+  const handleBannerDelete = async (key: string) => {
+    try {
+      const res = await fetch(`/api/admin/settings/banners?key=${key}`, {
+        method: 'DELETE'
+      })
+
+      if (!res.ok) throw new Error('Failed to delete banner')
+
+      setSettings(prev => ({ ...prev, [key]: undefined }))
+      setFormData(prev => ({ ...prev, [key]: undefined }))
+      toast.success('Banner deleted successfully')
+    } catch (error) {
+      console.error('Error deleting banner:', error)
+      toast.error('Failed to delete banner')
+    }
+  }
+
+  const BannerUpload = ({ 
+    label, 
+    bannerKey, 
+    currentUrl, 
+    defaultUrl 
+  }: { 
+    label: string
+    bannerKey: string
+    currentUrl?: string
+    defaultUrl: string
+  }) => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{label}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-slate-100">
+          <Image
+            src={currentUrl || defaultUrl}
+            alt={label}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 600px"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={uploadingBanner === bannerKey}
+            onClick={() => {
+              const input = document.createElement('input')
+              input.type = 'file'
+              input.accept = 'image/*'
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0]
+                if (file) handleBannerUpload(bannerKey, file)
+              }
+              input.click()
+            }}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {uploadingBanner === bannerKey ? 'Uploading...' : currentUrl ? 'Change Image' : 'Upload Image'}
+          </Button>
+
+          {currentUrl && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleBannerDelete(bannerKey)}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Remove
+            </Button>
+          )}
+        </div>
+
+        {!currentUrl && (
+          <p className="text-xs text-muted-foreground">
+            Using default image from Unsplash
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -88,7 +207,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="population" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="population">
             <Users className="w-4 h-4 mr-2" />
             Population Data
@@ -96,6 +215,10 @@ export default function SettingsPage() {
           <TabsTrigger value="contact">
             <Home className="w-4 h-4 mr-2" />
             Contact Info
+          </TabsTrigger>
+          <TabsTrigger value="banners">
+            <ImageIcon className="w-4 h-4 mr-2" />
+            Banners & Hero
           </TabsTrigger>
         </TabsList>
 
@@ -242,6 +365,59 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="banners" className="space-y-4 mt-6">
+          <div className="grid grid-cols-1 gap-4">
+            <BannerUpload
+              label="Homepage Hero Image"
+              bannerKey="heroImage"
+              currentUrl={settings.heroImage}
+              defaultUrl="https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=2070"
+            />
+
+            <BannerUpload
+              label="Halaman Berita - Banner"
+              bannerKey="beritaBanner"
+              currentUrl={settings.beritaBanner}
+              defaultUrl="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070"
+            />
+
+            <BannerUpload
+              label="Halaman Galeri - Banner"
+              bannerKey="galeriBanner"
+              currentUrl={settings.galeriBanner}
+              defaultUrl="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2074"
+            />
+
+            <BannerUpload
+              label="Halaman Potensi - Banner"
+              bannerKey="potensiBanner"
+              currentUrl={settings.potensiBanner}
+              defaultUrl="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070"
+            />
+
+            <BannerUpload
+              label="Halaman Profil - Banner"
+              bannerKey="profilBanner"
+              currentUrl={settings.profilBanner}
+              defaultUrl="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2069"
+            />
+
+            <BannerUpload
+              label="Halaman Struktur - Banner"
+              bannerKey="strukturBanner"
+              currentUrl={settings.strukturBanner}
+              defaultUrl="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2070"
+            />
+
+            <BannerUpload
+              label="Halaman Peta - Banner"
+              bannerKey="petaBanner"
+              currentUrl={settings.petaBanner}
+              defaultUrl="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2074"
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
