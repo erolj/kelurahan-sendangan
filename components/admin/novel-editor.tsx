@@ -53,11 +53,33 @@ export function NovelEditor({ initialValue, onChange }: TiptapEditorProps) {
     },
   })
 
-  const addImage = () => {
-    const url = window.prompt('Enter image URL:')
-    if (url && editor) {
-      editor.chain().focus().setImage({ src: url }).run()
+  const addImage = async () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file || !editor) return
+
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const res = await fetch('/api/admin/posts/upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!res.ok) throw new Error('Upload failed')
+
+        const { url } = await res.json()
+        editor.chain().focus().setImage({ src: url }).run()
+      } catch (error) {
+        console.error('Image upload failed:', error)
+        alert('Gagal mengupload gambar')
+      }
     }
+    input.click()
   }
 
   if (!mounted || !editor) {

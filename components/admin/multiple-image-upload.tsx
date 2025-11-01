@@ -98,7 +98,7 @@ export function MultipleImageUpload({ onUploadComplete }: MultipleImageUploadPro
         const formData = new FormData()
         formData.append('file', item.file)
 
-        const uploadRes = await fetch('/api/admin/upload', {
+        const uploadRes = await fetch('/api/admin/gallery/upload', {
           method: 'POST',
           body: formData
         })

@@ -129,6 +129,7 @@ export default function CreatePotensiPage() {
                 value={formData.imageUrl}
                 onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                 onRemove={() => setFormData({ ...formData, imageUrl: "" })}
+                uploadEndpoint="/api/admin/potentials/upload"
               />
               <p className="text-sm text-slate-500">
                 Gambar akan digunakan jika emoji tidak diisi.

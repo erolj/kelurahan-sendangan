@@ -9,9 +9,10 @@ interface ImageUploadProps {
   value?: string;
   onChange: (url: string) => void;
   onRemove?: () => void;
+  uploadEndpoint?: string;
 }
 
-export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, onRemove, uploadEndpoint = "/api/admin/upload" }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +24,7 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/admin/upload", {
+      const res = await fetch(uploadEndpoint, {
         method: "POST",
         body: formData,
       });
