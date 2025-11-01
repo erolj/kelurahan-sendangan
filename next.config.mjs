@@ -9,6 +9,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'sendangan.blob.core.windows.net',
+      },
     ],
   },
 }

@@ -1,6 +1,5 @@
-import { writeFile, unlink, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
 import path from 'path'
+import { uploadBlob, deleteBlob, extractBlobNameFromUrl } from './azure-storage'
 
 export const UPLOAD_CONFIG = {
   maxFileSize: 10 * 1024 * 1024,
@@ -66,24 +65,18 @@ export async function uploadFile(file: File, options: UploadOptions): Promise<Up
       return { success: false, error: validation.error }
     }
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', options.folder)
-    
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     const timestamp = Date.now()
     const ext = path.extname(file.name)
     const baseFilename = options.customFilename || `${timestamp}`
     
     const filename = `${baseFilename}${ext}`.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const filepath = path.join(uploadDir, filename)
+    const blobName = `${options.folder}/${filename}`
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
 
-    const url = `/uploads/${options.folder}/${filename}`
+    const url = await uploadBlob(buffer, blobName, file.type)
+
     return { success: true, url }
   } catch (error) {
     console.error('Upload file error:', error)
@@ -93,17 +86,18 @@ export async function uploadFile(file: File, options: UploadOptions): Promise<Up
 
 export async function deleteFile(url: string): Promise<boolean> {
   try {
-    if (!url || !url.startsWith('/uploads/')) {
+    if (!url) {
+      return false
+    }
+
+    const blobName = extractBlobNameFromUrl(url)
+    if (!blobName) {
       return false
     }
     
-    const filepath = path.join(process.cwd(), 'public', url)
-    await unlink(filepath)
-    return true
+    return await deleteBlob(blobName)
   } catch (error) {
-    if ((error as any)?.code !== 'ENOENT') {
-      console.error('Delete file error:', error)
-    }
+    console.error('Delete file error:', error)
     return false
   }
 }
