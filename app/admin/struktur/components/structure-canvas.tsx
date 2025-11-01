@@ -24,7 +24,7 @@ import StructureNode from './structure-node'
 import FloatingToolbar from './floating-toolbar'
 import { getLayoutedElements } from '@/lib/structure-layout'
 import { useToast } from '@/hooks/use-toast'
-import { ZoomIn, ZoomOut, Maximize2, Copy, Trash2 } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Copy, Trash2, Keyboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
@@ -32,6 +32,14 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 
 type StructureMember = {
   id: string
@@ -75,6 +83,7 @@ export default function StructureCanvas({
   const [isMobile, setIsMobile] = useState(false)
   const [contextMenuNode, setContextMenuNode] = useState<string | null>(null)
   const [clipboard, setClipboard] = useState<Node | null>(null)
+  const [showShortcuts, setShowShortcuts] = useState(false)
   
   // Undo/Redo state
   const [history, setHistory] = useState<HistoryState[]>([])
@@ -630,20 +639,110 @@ export default function StructureCanvas({
                 </Panel>
               )}
               
-              {/* Keyboard Shortcuts Helper */}
+              {/* Keyboard Shortcuts Button */}
               {!isMobile && (
-                <Panel position="top-left" className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3 text-xs">
-                  <div className="font-semibold mb-2 text-slate-700">Keyboard Shortcuts</div>
-                  <div className="space-y-1 text-slate-600">
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Ctrl+Z</kbd> Undo</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Ctrl+Y</kbd> Redo</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Ctrl+C</kbd> Copy</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Ctrl+V</kbd> Paste</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Del</kbd> Delete</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Shift+Click</kbd> Multi-select</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">↑↓←→</kbd> Move (±5px)</div>
-                    <div><kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Shift+↑↓←→</kbd> Move (±20px)</div>
-                  </div>
+                <Panel position="top-left">
+                  <Sheet open={showShortcuts} onOpenChange={setShowShortcuts}>
+                    <SheetTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="bg-white/90 backdrop-blur-sm shadow-lg hover:bg-slate-50"
+                      >
+                        <Keyboard className="h-4 w-4 mr-2" />
+                        Shortcuts
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80">
+                      <SheetHeader>
+                        <SheetTitle>Keyboard Shortcuts</SheetTitle>
+                        <SheetDescription>
+                          Gunakan shortcuts untuk navigasi lebih cepat
+                        </SheetDescription>
+                      </SheetHeader>
+                      
+                      <div className="mt-6 space-y-6">
+                        {/* Undo/Redo */}
+                        <div>
+                          <h3 className="font-semibold text-sm mb-3 text-slate-700">Undo/Redo</h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Undo</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Ctrl+Z</kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Redo</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Ctrl+Y</kbd>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Copy/Paste */}
+                        <div>
+                          <h3 className="font-semibold text-sm mb-3 text-slate-700">Copy/Paste</h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Copy</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Ctrl+C</kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Paste</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Ctrl+V</kbd>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Selection */}
+                        <div>
+                          <h3 className="font-semibold text-sm mb-3 text-slate-700">Selection</h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Multi-select</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Shift+Click</kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Select All</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Ctrl+A</kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Deselect</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Esc</kbd>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div>
+                          <h3 className="font-semibold text-sm mb-3 text-slate-700">Actions</h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Delete</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Del</kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Duplicate</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Right-click</kbd>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Movement */}
+                        <div>
+                          <h3 className="font-semibold text-sm mb-3 text-slate-700">Movement</h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Move (5px)</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">↑ ↓ ← →</kbd>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-600">Move (20px)</span>
+                              <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Shift+Arrow</kbd>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                 </Panel>
               )}
             </ReactFlow>
