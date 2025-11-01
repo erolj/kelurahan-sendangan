@@ -148,6 +148,11 @@ export default function StrukturPage() {
     }
   }
 
+  const handlePositionChange = () => {
+    // Optimistic update - mark as unpublished when position changes
+    setHasUnpublished(true)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -206,6 +211,7 @@ export default function StrukturPage() {
               onRefresh={fetchStructure}
               onEdit={handleEdit}
               onDelete={setDeleteId}
+              onPositionChange={handlePositionChange}
             />
           )}
         </CardContent>

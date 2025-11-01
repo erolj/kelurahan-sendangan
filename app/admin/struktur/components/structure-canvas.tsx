@@ -59,6 +59,7 @@ type StructureCanvasProps = {
   onRefresh: () => void
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  onPositionChange?: () => void
 }
 
 type HistoryState = {
@@ -75,6 +76,7 @@ export default function StructureCanvas({
   onRefresh,
   onEdit,
   onDelete,
+  onPositionChange,
 }: StructureCanvasProps) {
   const { toast } = useToast()
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -279,6 +281,9 @@ export default function StructureCanvas({
         return currentNodes
       })
       
+      // Mark as unpublished
+      onPositionChange?.()
+      
       positionChanges.forEach(async (change) => {
         if (change.type === 'position' && change.position) {
           try {
@@ -296,7 +301,7 @@ export default function StructureCanvas({
         }
       })
     }
-  }, [onNodesChange, edges, saveToHistory, setNodes])
+  }, [onNodesChange, edges, saveToHistory, setNodes, onPositionChange])
 
   const handleConnect: OnConnect = useCallback(async (connection: Connection) => {
     if (!connection.source || !connection.target) return
