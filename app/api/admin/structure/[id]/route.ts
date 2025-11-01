@@ -78,6 +78,13 @@ export async function PATCH(
       }
     })
 
+    // Mark as having unpublished changes
+    await prisma.structureMetadata.upsert({
+      where: { id: 1 },
+      update: { hasUnpublished: true },
+      create: { id: 1, hasUnpublished: true }
+    })
+
     revalidatePath('/', 'layout')
     revalidatePath('/struktur')
 
@@ -113,6 +120,13 @@ export async function DELETE(
 
     await prisma.structureMember.delete({
       where: { id }
+    })
+
+    // Mark as having unpublished changes
+    await prisma.structureMetadata.upsert({
+      where: { id: 1 },
+      update: { hasUnpublished: true },
+      create: { id: 1, hasUnpublished: true }
     })
 
     revalidatePath('/', 'layout')

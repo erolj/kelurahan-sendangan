@@ -21,7 +21,14 @@ export async function GET() {
       ]
     })
 
-    return NextResponse.json(members)
+    // Check if there are unpublished changes
+    const metadata = await prisma.structureMetadata.findFirst()
+
+    return NextResponse.json({ 
+      members,
+      hasUnpublished: metadata?.hasUnpublished ?? false,
+      lastPublishedAt: metadata?.lastPublishedAt
+    })
   } catch (error) {
     console.error('Structure fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch structure' }, { status: 500 })
@@ -57,11 +64,18 @@ export async function POST(request: NextRequest) {
         parentId: normalizedParentId,
         positionX: positionX ?? 0,
         positionY: positionY ?? 0,
-        urutan: urutan ?? ((maxUrutan._max?.urutan ?? 0) + 1)
+        urutan: urutan ?? ((maxUrutan._max?.urutan ?? 0) + 1),
       },
       include: {
         parent: true
       }
+    })
+
+    // Mark as having unpublished changes
+    await prisma.structureMetadata.upsert({
+      where: { id: 1 },
+      update: { hasUnpublished: true },
+      create: { id: 1, hasUnpublished: true }
     })
 
     revalidatePath('/', 'layout')

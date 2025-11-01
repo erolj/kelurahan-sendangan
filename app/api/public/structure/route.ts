@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const members = await prisma.structureMember.findMany({
+    const members = await prisma.publishedStructure.findMany({
       select: {
         id: true,
         jabatan: true,
@@ -17,7 +17,7 @@ export async function GET() {
       },
       orderBy: [
         { urutan: 'asc' },
-        { createdAt: 'asc' }
+        { publishedAt: 'asc' }
       ]
     })
 
