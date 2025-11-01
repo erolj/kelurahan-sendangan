@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { writeFile, unlink } from 'fs/promises'
-import { join } from 'path'
 import { revalidatePath } from 'next/cache'
+import { uploadFile, deleteFile } from '@/lib/upload-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,39 +33,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid banner key' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    const result = await uploadFile(file, { 
+      folder: 'banners',
+      customFilename: `${key}-${Date.now()}`
+    })
 
-    const timestamp = Date.now()
-    const filename = `${key}-${timestamp}.${file.name.split('.').pop()}`
-    const filepath = join(process.cwd(), 'public', 'uploads', 'banners', filename)
-
-    await writeFile(filepath, buffer)
-
-    const url = `/uploads/banners/${filename}`
+    if (!result.success || !result.url) {
+      return NextResponse.json({ error: result.error || 'Upload failed' }, { status: 400 })
+    }
 
     const existingSetting = await prisma.setting.findUnique({
       where: { key }
     })
 
-    if (existingSetting && existingSetting.value && existingSetting.value.startsWith('/uploads/banners/')) {
-      try {
-        const oldFilepath = join(process.cwd(), 'public', existingSetting.value)
-        await unlink(oldFilepath)
-      } catch (err) {
-        console.error('Failed to delete old banner:', err)
-      }
+    if (existingSetting?.value) {
+      await deleteFile(existingSetting.value)
     }
 
     await prisma.setting.upsert({
       where: { key },
-      create: { key, value: url },
-      update: { value: url }
+      create: { key, value: result.url },
+      update: { value: result.url }
     })
 
     revalidatePath('/', 'layout')
 
-    return NextResponse.json({ url })
+    return NextResponse.json({ url: result.url })
   } catch (error) {
     console.error('Banner upload error:', error)
     return NextResponse.json({ error: 'Failed to upload banner' }, { status: 500 })
@@ -91,13 +83,8 @@ export async function DELETE(request: NextRequest) {
       where: { key }
     })
 
-    if (setting && setting.value && setting.value.startsWith('/uploads/banners/')) {
-      try {
-        const filepath = join(process.cwd(), 'public', setting.value)
-        await unlink(filepath)
-      } catch (err) {
-        console.error('Failed to delete banner file:', err)
-      }
+    if (setting?.value) {
+      await deleteFile(setting.value)
     }
 
     await prisma.setting.delete({

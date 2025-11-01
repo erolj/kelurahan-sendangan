@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
 import { auth } from '@/lib/auth'
+import { uploadFile } from '@/lib/upload-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,25 +16,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    const result = await uploadFile(file, { folder: 'structure' })
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'structure')
-    
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 400 })
     }
 
-    const timestamp = Date.now()
-    const ext = path.extname(file.name)
-    const filename = `${timestamp}${ext}`
-    const filepath = path.join(uploadDir, filename)
-
-    await writeFile(filepath, buffer)
-
-    const url = `/uploads/structure/${filename}`
-
-    return NextResponse.json({ url })
+    return NextResponse.json({ url: result.url })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })

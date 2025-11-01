@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { unlink } from 'fs/promises'
-import { join } from 'path'
+import { deleteFile } from '@/lib/upload-utils'
 
 export async function GET(
   request: NextRequest,
@@ -57,13 +56,8 @@ export async function PATCH(
         where: { id }
       })
 
-      if (currentItem?.imageUrl && currentItem.imageUrl !== imageUrl && currentItem.imageUrl.startsWith('/uploads/')) {
-        try {
-          const oldFilepath = join(process.cwd(), 'public', currentItem.imageUrl)
-          await unlink(oldFilepath)
-        } catch (err) {
-          console.error('Failed to delete old image:', err)
-        }
+      if (currentItem?.imageUrl && currentItem.imageUrl !== imageUrl) {
+        await deleteFile(currentItem.imageUrl)
       }
     }
 
@@ -109,15 +103,7 @@ export async function DELETE(
     }
 
     if (item.imageUrl) {
-      try {
-        const filename = item.imageUrl.split('/').pop()
-        if (filename) {
-          const filePath = join(process.cwd(), 'public', 'uploads', filename)
-          await unlink(filePath)
-        }
-      } catch (fileError) {
-        console.error('File deletion error:', fileError)
-      }
+      await deleteFile(item.imageUrl)
     }
 
     await prisma.potential.delete({

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { unlink } from 'fs/promises'
-import { join } from 'path'
+import { deleteFile } from '@/lib/upload-utils'
 
 export async function GET(
   request: NextRequest,
@@ -67,13 +66,8 @@ export async function PATCH(
         where: { id }
       })
 
-      if (currentMember?.fotoUrl && currentMember.fotoUrl !== fotoUrl && currentMember.fotoUrl.startsWith('/uploads/structure/')) {
-        try {
-          const oldFilepath = join(process.cwd(), 'public', currentMember.fotoUrl)
-          await unlink(oldFilepath)
-        } catch (err) {
-          console.error('Failed to delete old photo:', err)
-        }
+      if (currentMember?.fotoUrl && currentMember.fotoUrl !== fotoUrl) {
+        await deleteFile(currentMember.fotoUrl)
       }
     }
 
@@ -135,13 +129,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     }
 
-    if (member.fotoUrl && member.fotoUrl.startsWith('/uploads/structure/')) {
-      try {
-        const filepath = join(process.cwd(), 'public', member.fotoUrl)
-        await unlink(filepath)
-      } catch (err) {
-        console.error('Failed to delete photo:', err)
-      }
+    if (member.fotoUrl) {
+      await deleteFile(member.fotoUrl)
     }
 
     await prisma.structureMember.delete({
