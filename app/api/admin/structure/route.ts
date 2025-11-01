@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { jabatan, nama, nip, lingkungan, parentId, urutan } = await request.json()
+    const { jabatan, nama, nip, fotoUrl, parentId, urutan, positionX, positionY } = await request.json()
 
     if (!jabatan || !nama) {
       return NextResponse.json({ error: 'Jabatan and nama are required' }, { status: 400 })
@@ -53,8 +53,10 @@ export async function POST(request: NextRequest) {
         jabatan,
         nama: nama.trim(),
         nip: nip?.trim() || null,
-        lingkungan: lingkungan ? parseInt(lingkungan) : null,
+        fotoUrl: fotoUrl || null,
         parentId: normalizedParentId,
+        positionX: positionX ?? 0,
+        positionY: positionY ?? 0,
         urutan: urutan ?? ((maxUrutan._max?.urutan ?? 0) + 1)
       },
       include: {

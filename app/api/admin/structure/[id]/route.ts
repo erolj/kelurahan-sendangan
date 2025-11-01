@@ -46,28 +46,33 @@ export async function PATCH(
 
     const { id } = await context.params
 
-    const { jabatan, nama, nip, lingkungan, parentId, urutan } = await request.json()
+    const { jabatan, nama, nip, fotoUrl, parentId, urutan, positionX, positionY } = await request.json()
 
-    if (!jabatan || !nama) {
+    if (jabatan !== undefined && nama !== undefined && (!jabatan || !nama)) {
       return NextResponse.json({ error: 'Jabatan and nama are required' }, { status: 400 })
     }
 
-    const normalizedParentId = parentId && parentId !== '' ? String(parentId) : null
+    const normalizedParentId = parentId !== undefined 
+      ? (parentId && parentId !== '' ? String(parentId) : null)
+      : undefined
 
     if (normalizedParentId === id) {
       return NextResponse.json({ error: 'Cannot set self as parent' }, { status: 400 })
     }
 
+    const updateData: Record<string, unknown> = {}
+    if (jabatan !== undefined) updateData.jabatan = jabatan
+    if (nama !== undefined) updateData.nama = nama.trim()
+    if (nip !== undefined) updateData.nip = nip?.trim() || null
+    if (fotoUrl !== undefined) updateData.fotoUrl = fotoUrl
+    if (normalizedParentId !== undefined) updateData.parentId = normalizedParentId
+    if (urutan !== undefined) updateData.urutan = urutan
+    if (positionX !== undefined) updateData.positionX = positionX
+    if (positionY !== undefined) updateData.positionY = positionY
+
     const member = await prisma.structureMember.update({
       where: { id },
-      data: {
-        jabatan,
-        nama: nama.trim(),
-        nip: nip?.trim() || null,
-        lingkungan: lingkungan ? parseInt(lingkungan) : null,
-        parentId: normalizedParentId,
-        urutan: urutan ?? undefined
-      },
+      data: updateData,
       include: {
         parent: true
       }
