@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FileText } from "lucide-react"
 
+const DEFAULT_BANNER = "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2069"
+
 interface ProfileData {
   visi?: string
   misi?: string
@@ -16,6 +18,7 @@ interface ProfileData {
 export default function ProfilPage() {
   const [profileData, setProfileData] = useState<ProfileData>({})
   const [loading, setLoading] = useState(true)
+  const [bannerImage, setBannerImage] = useState(DEFAULT_BANNER)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -36,12 +39,29 @@ export default function ProfilPage() {
 
     fetchProfile()
   }, [])
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await fetch('/api/public/settings')
+        if (res.ok) {
+          const settings = await res.json()
+          if (settings.profilBanner) {
+            setBannerImage(settings.profilBanner)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch banner:', error)
+      }
+    }
+    fetchBanner()
+  }, [])
   return (
     <div className="w-full">
       <section className="relative bg-slate-900 text-white py-12 px-4">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2069"
+            src={bannerImage}
             alt="Profil Kelurahan"
             fill
             className="object-cover opacity-10"

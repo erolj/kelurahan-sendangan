@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Newspaper, Search, Calendar, ArrowRight } from "lucide-react"
+import { Newspaper, Search, Calendar, ArrowRight, Loader2 } from "lucide-react"
 import { useScrollAnimation } from "@/hooks/use-scroll-animation"
+
+const DEFAULT_BANNER = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070"
 
 interface Post {
   id: number
@@ -113,7 +115,10 @@ export default function BeritaPage() {
   const [activeTab, setActiveTab] = useState("semua")
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isMobile, setIsMobile] = useState(false)
+  const [bannerImage, setBannerImage] = useState(DEFAULT_BANNER)
   const [pagination, setPagination] = useState<PaginationData>({
     page: 1,
     limit: 6,
@@ -121,9 +126,43 @@ export default function BeritaPage() {
     totalPages: 0,
     hasMore: false,
   })
+  const observerTarget = useRef<HTMLDivElement>(null)
 
-  const fetchPosts = async (page: number = 1, search: string = "") => {
-    setLoading(true)
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await fetch('/api/public/settings')
+        if (res.ok) {
+          const settings = await res.json()
+          if (settings.beritaBanner) {
+            setBannerImage(settings.beritaBanner)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch banner:', error)
+      }
+    }
+
+    fetchBanner()
+  }, [])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  const fetchPosts = async (page: number = 1, search: string = "", append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true)
+    } else {
+      setLoading(true)
+    }
+
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -142,36 +181,76 @@ export default function BeritaPage() {
       if (!res.ok) throw new Error("Failed to fetch posts")
 
       const data = await res.json()
-      setPosts(data.posts || [])
+      
+      if (append) {
+        setPosts(prev => [...prev, ...(data.posts || [])])
+      } else {
+        setPosts(data.posts || [])
+      }
+      
       setPagination(data.pagination)
     } catch (error) {
       console.error("Error fetching posts:", error)
-      setPosts([])
+      if (!append) {
+        setPosts([])
+      }
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
   useEffect(() => {
-    fetchPosts(1, searchQuery)
+    fetchPosts(1, searchQuery, false)
   }, [activeTab])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchPosts(1, searchQuery)
+    fetchPosts(1, searchQuery, false)
   }
 
   const handlePageChange = (newPage: number) => {
-    fetchPosts(newPage, searchQuery)
+    fetchPosts(newPage, searchQuery, false)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
+
+  const handleLoadMore = useCallback(() => {
+    if (!loadingMore && pagination.hasMore) {
+      const nextPage = pagination.page + 1
+      fetchPosts(nextPage, searchQuery, true)
+    }
+  }, [pagination.page, pagination.hasMore, loadingMore, searchQuery])
+
+  useEffect(() => {
+    if (!isMobile) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && pagination.hasMore && !loadingMore) {
+          handleLoadMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    const currentTarget = observerTarget.current
+    if (currentTarget) {
+      observer.observe(currentTarget)
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget)
+      }
+    }
+  }, [isMobile, pagination.hasMore, loadingMore, handleLoadMore])
 
   return (
     <div className="w-full">
       <section className="relative bg-slate-900 text-white py-12 px-4">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070"
+            src={bannerImage}
             alt="Berita & Pengumuman"
             fill
             className="object-cover opacity-10"
@@ -255,63 +334,90 @@ export default function BeritaPage() {
                 ))}
               </div>
 
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                  >
-                    Previous
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    {[...Array(pagination.totalPages)].map((_, i) => {
-                      const pageNum = i + 1
-                      if (
-                        pageNum === 1 ||
-                        pageNum === pagination.totalPages ||
-                        Math.abs(pageNum - pagination.page) <= 1
-                      ) {
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={pageNum === pagination.page ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        )
-                      } else if (
-                        pageNum === pagination.page - 2 ||
-                        pageNum === pagination.page + 2
-                      ) {
-                        return (
-                          <span key={pageNum} className="px-2 text-muted-foreground">
-                            ...
-                          </span>
-                        )
-                      }
-                      return null
-                    })}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={!pagination.hasMore}
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
+              {isMobile ? (
+                <div ref={observerTarget} className="mt-8 text-center">
+                  {loadingMore && (
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Memuat postingan lainnya...</span>
+                    </div>
+                  )}
+                  
+                  {!loadingMore && pagination.hasMore && (
+                    <Button
+                      variant="outline"
+                      onClick={handleLoadMore}
+                      className="min-w-[200px]"
+                    >
+                      Muat Lebih Banyak
+                    </Button>
+                  )}
 
-              {/* Results info */}
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Menampilkan {posts.length} dari {pagination.total} postingan
-              </p>
+                  {!pagination.hasMore && posts.length > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Menampilkan semua {pagination.total} postingan
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.page - 1)}
+                        disabled={pagination.page === 1}
+                      >
+                        Previous
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        {[...Array(pagination.totalPages)].map((_, i) => {
+                          const pageNum = i + 1
+                          if (
+                            pageNum === 1 ||
+                            pageNum === pagination.totalPages ||
+                            Math.abs(pageNum - pagination.page) <= 1
+                          ) {
+                            return (
+                              <Button
+                                key={pageNum}
+                                variant={pageNum === pagination.page ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(pageNum)}
+                              >
+                                {pageNum}
+                              </Button>
+                            )
+                          } else if (
+                            pageNum === pagination.page - 2 ||
+                            pageNum === pagination.page + 2
+                          ) {
+                            return (
+                              <span key={pageNum} className="px-2 text-muted-foreground">
+                                ...
+                              </span>
+                            )
+                          }
+                          return null
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.page + 1)}
+                        disabled={!pagination.hasMore}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+
+                  <p className="text-center text-sm text-muted-foreground mt-4">
+                    Menampilkan {posts.length} dari {pagination.total} postingan
+                  </p>
+                </>
+              )}
             </>
           )}
         </div>

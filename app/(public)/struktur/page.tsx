@@ -6,6 +6,8 @@ import Image from "next/image"
 import { Users } from "lucide-react"
 import CanvasSkeleton from "@/app/admin/struktur/components/canvas-skeleton"
 
+const DEFAULT_BANNER = "https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2071"
+
 const PublicStructureCanvas = dynamic(() => import('./components/public-structure-canvas'), {
   ssr: false,
   loading: () => <CanvasSkeleton />,
@@ -25,6 +27,7 @@ interface StructureMember {
 export default function StrukturPage() {
   const [members, setMembers] = useState<StructureMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [bannerImage, setBannerImage] = useState(DEFAULT_BANNER)
 
   useEffect(() => {
     const fetchStructure = async () => {
@@ -46,12 +49,29 @@ export default function StrukturPage() {
     fetchStructure()
   }, [])
 
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await fetch('/api/public/settings')
+        if (res.ok) {
+          const settings = await res.json()
+          if (settings.strukturBanner) {
+            setBannerImage(settings.strukturBanner)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch banner:', error)
+      }
+    }
+    fetchBanner()
+  }, [])
+
   return (
     <div className="w-full">
       <section className="relative bg-slate-900 text-white py-12 px-4">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2070"
+            src={bannerImage}
             alt="Struktur Organisasi"
             fill
             className="object-cover opacity-10"

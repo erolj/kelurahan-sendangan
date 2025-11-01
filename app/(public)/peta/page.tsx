@@ -1,12 +1,35 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Image from "next/image"
 
+const DEFAULT_BANNER = "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2074"
+
 export default function PetaPage() {
+  const [bannerImage, setBannerImage] = useState(DEFAULT_BANNER)
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await fetch('/api/public/settings')
+        if (res.ok) {
+          const settings = await res.json()
+          if (settings.petaBanner) {
+            setBannerImage(settings.petaBanner)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch banner:', error)
+      }
+    }
+    fetchBanner()
+  }, [])
   return (
     <div className="w-full">
       <section className="relative bg-slate-900 text-white py-12 px-4">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2074"
+            src={bannerImage}
             alt="Peta Wilayah"
             fill
             className="object-cover opacity-10"
