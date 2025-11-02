@@ -15,8 +15,16 @@ interface ProfileData {
   profilUmum?: string
 }
 
+interface RegionData {
+  kecamatan?: string
+  kabupaten?: string
+  provinsi?: string
+  jumlahLingkungan?: string
+}
+
 export default function ProfilPage() {
   const [profileData, setProfileData] = useState<ProfileData>({})
+  const [regionData, setRegionData] = useState<RegionData>({})
   const [loading, setLoading] = useState(true)
   const [bannerImage, setBannerImage] = useState(DEFAULT_BANNER)
 
@@ -49,6 +57,12 @@ export default function ProfilPage() {
           if (settings.profilBanner) {
             setBannerImage(settings.profilBanner)
           }
+          setRegionData({
+            kecamatan: settings.kecamatan,
+            kabupaten: settings.kabupaten,
+            provinsi: settings.provinsi,
+            jumlahLingkungan: settings.jumlahLingkungan,
+          })
         }
       } catch (error) {
         console.error('Failed to fetch banner:', error)
@@ -171,19 +185,19 @@ export default function ProfilPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between border-b border-slate-200 pb-2">
                       <span className="text-slate-600">Kecamatan:</span>
-                      <span className="font-semibold text-slate-900">Kawangkoan</span>
+                      <span className="font-semibold text-slate-900">{regionData.kecamatan || 'Kawangkoan'}</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200 pb-2">
                       <span className="text-slate-600">Kabupaten:</span>
-                      <span className="font-semibold text-slate-900">Minahasa</span>
+                      <span className="font-semibold text-slate-900">{regionData.kabupaten || 'Minahasa'}</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200 pb-2">
                       <span className="text-slate-600">Provinsi:</span>
-                      <span className="font-semibold text-slate-900">Sulawesi Utara</span>
+                      <span className="font-semibold text-slate-900">{regionData.provinsi || 'Sulawesi Utara'}</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200 pb-2">
                       <span className="text-slate-600">Jumlah Lingkungan:</span>
-                      <span className="font-semibold text-slate-900">6</span>
+                      <span className="font-semibold text-slate-900">{regionData.jumlahLingkungan || '6'}</span>
                     </div>
                   </div>
                 </div>

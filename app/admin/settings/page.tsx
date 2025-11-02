@@ -19,6 +19,10 @@ interface Settings {
   telp?: string
   email?: string
   website?: string
+  kecamatan?: string
+  kabupaten?: string
+  provinsi?: string
+  jumlahLingkungan?: string
   heroImage?: string
   beritaBanner?: string
   galeriBanner?: string
@@ -207,10 +211,14 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="population" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="population">
             <Users className="w-4 h-4 mr-2" />
             Population Data
+          </TabsTrigger>
+          <TabsTrigger value="region">
+            <MapPin className="w-4 h-4 mr-2" />
+            Region Info
           </TabsTrigger>
           <TabsTrigger value="contact">
             <Home className="w-4 h-4 mr-2" />
@@ -278,6 +286,75 @@ export default function SettingsPage() {
                 <Button onClick={handleSave} disabled={saving}>
                   <Save className="w-4 h-4 mr-2" />
                   {saving ? 'Saving...' : 'Save Population Data'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setFormData(settings)}
+                  disabled={saving}
+                >
+                  Reset
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="region" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informasi Wilayah</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="kecamatan">Kecamatan</Label>
+                  <Input
+                    id="kecamatan"
+                    type="text"
+                    value={formData.kecamatan || ''}
+                    onChange={(e) => updateField('kecamatan', e.target.value)}
+                    placeholder="Kawangkoan"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="kabupaten">Kabupaten</Label>
+                  <Input
+                    id="kabupaten"
+                    type="text"
+                    value={formData.kabupaten || ''}
+                    onChange={(e) => updateField('kabupaten', e.target.value)}
+                    placeholder="Minahasa"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="provinsi">Provinsi</Label>
+                  <Input
+                    id="provinsi"
+                    type="text"
+                    value={formData.provinsi || ''}
+                    onChange={(e) => updateField('provinsi', e.target.value)}
+                    placeholder="Sulawesi Utara"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="jumlahLingkungan">Jumlah Lingkungan</Label>
+                  <Input
+                    id="jumlahLingkungan"
+                    type="text"
+                    value={formData.jumlahLingkungan || ''}
+                    onChange={(e) => updateField('jumlahLingkungan', e.target.value)}
+                    placeholder="6"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleSave} disabled={saving}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save Region Info'}
                 </Button>
                 <Button 
                   variant="outline" 
